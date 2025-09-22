@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "question": "He _____ to the store yesterday.",
+    "choices": ["go", "goes", "went", "gone"],
+    "answer": "went",
+    "tag": "grammar",
+    "audio": null
+  },
+  {
+    "id": 2,
+    "question": "If I _____ enough money, I would buy a new car.",
+    "choices": ["have", "had", "has", "having"],
+    "answer": "had",
+    "tag": "grammar",
+    "audio": null
+  },
+  {
+    "id": 3,
+    "question": "She has lived in Tokyo _____ 2010.",
+    "choices": ["for", "since", "from", "by"],
+    "answer": "since",
+    "tag": "grammar",
+    "audio": null
+  },
+  {
+    "id": 4,
+    "question": "It is important that he _____ on time.",
+    "choices": ["arrives", "arrive", "arrived", "arriving"],
+    "answer": "arrive",
+    "tag": "grammar",
+    "audio": null
+  },
+  {
+    "id": 5,
+    "question": "This book is _____ than the one I read last week.",
+    "choices": ["interesting", "more interesting", "most interesting", "interest"],
+    "answer": "more interesting",
+    "tag": "grammar",
+    "audio": null
+  },
+  {
+    "id": 6,
+    "question": "She is very _____ in classical music.",
+    "choices": ["interested", "interesting", "interest", "interests"],
+    "answer": "interested",
+    "tag": "vocabulary",
+    "audio": null
+  },
+  {
+    "id": 7,
+    "question": "The company will _____ a new product next month.",
+    "choices": ["release", "relieve", "realize", "rely"],
+    "answer": "release",
+    "tag": "vocabulary",
+    "audio": null
+  },
+  {
+    "id": 8,
+    "question": "His opinion had a great _____ on the decision.",
+    "choices": ["influence", "inflation", "inform", "infection"],
+    "answer": "influence",
+    "tag": "vocabulary",
+    "audio": null
+  },
+  {
+    "id": 9,
+    "question": "She finally _____ her dream of becoming a doctor.",
+    "choices": ["achieved", "received", "deceived", "believed"],
+    "answer": "achieved",
+    "tag": "vocabulary",
+    "audio": null
+  },
+  {
+    "id": 10,
+    "question": "The teacher asked us to _____ the essay by tomorrow.",
+    "choices": ["submit", "admit", "permit", "omit"],
+    "answer": "submit",
+    "tag": "vocabulary",
+    "audio": null
+  },
+  {
+    "id": 11,
+    "question": "According to the article, the number of foreign tourists in Japan has been _____ rapidly.",
+    "choices": ["increasing", "increased", "increase", "to increase"],
+    "answer": "increasing",
+    "tag": "reading",
+    "audio": null
+  },
+  {
+    "id": 12,
+    "question": "The passage suggests that exercising regularly can help people to _____ stress.",
+    "choices": ["reduce", "produce", "seduce", "introduce"],
+    "answer": "reduce",
+    "tag": "reading",
+    "audio": null
+  },
+  {
+    "id": 13,
+    "question": "The author implies that the new policy will _____ the environment positively.",
+    "choices": ["affect", "effect", "defect", "infect"],
+    "answer": "affect",
+    "tag": "reading",
+    "audio": null
+  },
+  {
+    "id": 14,
+    "question": "The main purpose of the passage is to _____ the importance of recycling.",
+    "choices": ["emphasize", "memorize", "symbolize", "criticize"],
+    "answer": "emphasize",
+    "tag": "reading",
+    "audio": null
+  },
+  {
+    "id": 15,
+    "question": "It can be inferred from the passage that the company will continue to _____ new technologies.",
+    "choices": ["develop", "deny", "depart", "deserve"],
+    "answer": "develop",
+    "tag": "reading",
+    "audio": null
+  },
+  {
+    "id": 16,
+    "question": "Q: What does the man say about the weather tomorrow?\nA) It will be sunny\nB) It will rain\nC) It will snow\nD) It will be cloudy",
+    "choices": ["It will be sunny", "It will rain", "It will snow", "It will be cloudy"],
+    "answer": "It will rain",
+    "tag": "listening",
+    "audio": "listening_q1.mp3"
+  },
+  {
+    "id": 17,
+    "question": "Q: What does the woman want to buy?\nA) A new bag\nB) A pair of shoes\nC) A hat\nD) A coat",
+    "choices": ["A new bag", "A pair of shoes", "A hat", "A coat"],
+    "answer": "A pair of shoes",
+    "tag": "listening",
+    "audio": "listening_q2.mp3"
+  },
+  {
+    "id": 18,
+    "question": "Q: Where are the speakers planning to go?\nA) The library\nB) The supermarket\nC) The park\nD) The station",
+    "choices": ["The library", "The supermarket", "The park", "The station"],
+    "answer": "The park",
+    "tag": "listening",
+    "audio": "listening_q3.mp3"
+  },
+  {
+    "id": 19,
+    "question": "Q: What time will the meeting start?\nA) At 9:00\nB) At 10:00\nC) At 11:00\nD) At 12:00",
+    "choices": ["At 9:00", "At 10:00", "At 11:00", "At 12:00"],
+    "answer": "At 10:00",
+    "tag": "listening",
+    "audio": "listening_q4.mp3"
+  },
+  {
+    "id": 20,
+    "question": "Q: What does the woman ask the man to do?\nA) Open the window\nB) Turn off the light\nC) Carry the bag\nD) Call a taxi",
+    "choices": ["Open the window", "Turn off the light", "Carry the bag", "Call a taxi"],
+    "answer": "Carry the bag",
+    "tag": "listening",
+    "audio": "listening_q5.mp3"
+  }
+]
