@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>このアプリは、より関連性の高い広告を表示し、広告の効果を測定するために、あなたのデバイスを追跡する許可を求めています。この情報は、あなたの学習体験を向上させるために使用されます。</string>
 </dict>
 </plist>

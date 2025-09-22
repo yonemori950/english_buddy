@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/question.dart';
 import '../services/quiz_service.dart';
+import '../widgets/audio_player_button.dart';
+import '../providers/user_provider.dart';
 import 'quiz_result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -51,6 +54,10 @@ class _QuizScreenState extends State<QuizScreen> {
     // タグ別の結果を記録
     final tag = currentQuestion.tag;
     tagResults[tag] = (tagResults[tag] ?? 0) + (isCorrect ? 1 : 0);
+
+    // スコアをFirebaseに保存
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.updateScore(tag, isCorrect);
   }
 
   void _nextQuestion() {
@@ -194,12 +201,45 @@ class _QuizScreenState extends State<QuizScreen> {
                     elevation: 4,
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Text(
-                        currentQuestion.question,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // リスニング問題の場合は音声再生ボタンを表示
+                          if (currentQuestion.tag == 'listening' && currentQuestion.audio != null)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.volume_up,
+                                  color: Colors.purple,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '音声を再生してください',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.purple,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const Spacer(),
+                                AudioPlayerButton(
+                                  audioPath: currentQuestion.audio,
+                                  size: 40,
+                                  color: Colors.purple,
+                                ),
+                              ],
+                            ),
+                          if (currentQuestion.tag == 'listening' && currentQuestion.audio != null)
+                            const SizedBox(height: 16),
+                          Text(
+                            currentQuestion.question,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

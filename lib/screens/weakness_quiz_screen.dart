@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/question.dart';
 import '../services/quiz_service.dart';
+import '../widgets/audio_player_button.dart';
+import '../providers/user_provider.dart';
 import 'quiz_result_screen.dart';
 
 class WeaknessQuizScreen extends StatefulWidget {
@@ -28,8 +31,34 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
   Future<void> _loadQuestions() async {
     final loadedQuestions = await QuizService.loadQuestions();
     
-    // 苦手分野をシミュレート（実際の実装ではユーザーの履歴から取得）
-    final weakTags = ['vocabulary', 'listening']; // 例：語彙とリスニングが苦手
+    // ユーザーの苦手分野を分析
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final user = userProvider.currentUser;
+    
+    List<String> weakTags = ['vocabulary', 'listening']; // デフォルト
+    
+    if (user != null) {
+      // 苦手分野を特定
+      final scores = user.scores;
+      final tagAccuracies = <String, double>{};
+      
+      scores.forEach((tag, tagScores) {
+        final correct = tagScores['correct'] ?? 0;
+        final wrong = tagScores['wrong'] ?? 0;
+        final total = correct + wrong;
+        
+        if (total > 0) {
+          final accuracy = correct / total;
+          tagAccuracies[tag] = accuracy;
+        }
+      });
+      
+      // 正答率の低いタグを取得
+      final sortedTags = tagAccuracies.entries.toList()
+        ..sort((a, b) => a.value.compareTo(b.value));
+      
+      weakTags = sortedTags.take(2).map((e) => e.key).toList();
+    }
     
     setState(() {
       questions = QuizService.getWeaknessQuestions(weakTags, 10);
@@ -55,6 +84,10 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
     // タグ別の結果を記録
     final tag = currentQuestion.tag;
     tagResults[tag] = (tagResults[tag] ?? 0) + (isCorrect ? 1 : 0);
+
+    // スコアをFirebaseに保存
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.updateScore(tag, isCorrect);
   }
 
   void _nextQuestion() {
@@ -198,12 +231,45 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
                     elevation: 4,
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Text(
-                        currentQuestion.question,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // リスニング問題の場合は音声再生ボタンを表示
+                          if (currentQuestion.tag == 'listening' && currentQuestion.audio != null)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.volume_up,
+                                  color: Colors.purple,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '音声を再生してください',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.purple,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const Spacer(),
+                                AudioPlayerButton(
+                                  audioPath: currentQuestion.audio,
+                                  size: 40,
+                                  color: Colors.purple,
+                                ),
+                              ],
+                            ),
+                          if (currentQuestion.tag == 'listening' && currentQuestion.audio != null)
+                            const SizedBox(height: 16),
+                          Text(
+                            currentQuestion.question,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

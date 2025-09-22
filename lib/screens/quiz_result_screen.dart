@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../services/rewarded_ad_service.dart';
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends StatefulWidget {
   final int correctAnswers;
   final int totalQuestions;
   final int score;
@@ -17,8 +18,56 @@ class QuizResultScreen extends StatelessWidget {
   });
 
   @override
+  State<QuizResultScreen> createState() => _QuizResultScreenState();
+}
+
+class _QuizResultScreenState extends State<QuizResultScreen> {
+  bool _hasWatchedAd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // リワード広告を事前読み込み
+    RewardedAdService.loadRewardedAd();
+  }
+
+  void _showRewardedAd() {
+    RewardedAdService.showRewardedAd(
+      onRewarded: () {
+        setState(() {
+          _hasWatchedAd = true;
+        });
+        _showExplanationDialog();
+      },
+      onAdFailedToShow: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('広告の読み込みに失敗しました。しばらくしてから再試行してください。'),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showExplanationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('解説を見る'),
+        content: const Text('広告をご覧いただき、ありがとうございます！\n\n間違えた問題の詳細な解説を表示します。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final accuracy = totalQuestions > 0 ? correctAnswers / totalQuestions : 0.0;
+    final accuracy = widget.totalQuestions > 0 ? widget.correctAnswers / widget.totalQuestions : 0.0;
     final accuracyPercentage = (accuracy * 100).round();
 
     return Scaffold(
@@ -80,9 +129,9 @@ class QuizResultScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildScoreItem('正解数', '$correctAnswers / $totalQuestions', Icons.check_circle),
-                            _buildScoreItem('スコア', '$score', Icons.star),
-                            _buildScoreItem('獲得EXP', '+$expGained', Icons.trending_up),
+                            _buildScoreItem('正解数', '${widget.correctAnswers} / ${widget.totalQuestions}', Icons.check_circle),
+                            _buildScoreItem('スコア', '${widget.score}', Icons.star),
+                            _buildScoreItem('獲得EXP', '+${widget.expGained}', Icons.trending_up),
                           ],
                         ),
                       ],
@@ -107,7 +156,7 @@ class QuizResultScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ...tagResults.entries.map((entry) {
+                        ...widget.tagResults.entries.map((entry) {
                           final tagName = _getTagName(entry.key);
                           final correctCount = entry.value;
                           final totalCount = _getTotalQuestionsForTag(entry.key);
@@ -183,6 +232,45 @@ class QuizResultScreen extends StatelessWidget {
                               color: Colors.grey[600],
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          // リワード広告ボタン
+                          if (!_hasWatchedAd)
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _showRewardedAd,
+                                icon: const Icon(Icons.play_circle_outline),
+                                label: const Text('広告を見て解説を確認'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange[600],
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                          if (_hasWatchedAd)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.green[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.green[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.check_circle, color: Colors.green[600]),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '解説を確認済み',
+                                    style: TextStyle(
+                                      color: Colors.green[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -304,11 +392,11 @@ class QuizResultScreen extends StatelessWidget {
   int _getTotalQuestionsForTag(String tag) {
     // 実際の実装では、各タグの総問題数を計算する必要があります
     // ここでは簡易的に正解数から推定します
-    return tagResults[tag] ?? 0;
+    return widget.tagResults[tag] ?? 0;
   }
 
   bool _hasWeakAreas() {
-    return tagResults.entries.any((entry) {
+    return widget.tagResults.entries.any((entry) {
       final correctCount = entry.value;
       final totalCount = _getTotalQuestionsForTag(entry.key);
       final accuracy = totalCount > 0 ? correctCount / totalCount : 0.0;
@@ -317,7 +405,7 @@ class QuizResultScreen extends StatelessWidget {
   }
 
   String _getWeakAreasText() {
-    final weakAreas = tagResults.entries.where((entry) {
+    final weakAreas = widget.tagResults.entries.where((entry) {
       final correctCount = entry.value;
       final totalCount = _getTotalQuestionsForTag(entry.key);
       final accuracy = totalCount > 0 ? correctCount / totalCount : 0.0;
