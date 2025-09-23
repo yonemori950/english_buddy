@@ -43,7 +43,6 @@ class IDFAService {
             tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
             tagForUnderAgeOfConsent: TagForUnderAgeOfConsent.unspecified,
             maxAdContentRating: MaxAdContentRating.g,
-            sameAppKeyEnabled: true,
           ),
         );
       }
@@ -77,6 +76,8 @@ class IDFAService {
         return '広告追跡が制限されています';
       case TrackingStatus.notDetermined:
         return '広告追跡の許可が未決定です';
+      case TrackingStatus.notSupported:
+        return '広告追跡がサポートされていません';
     }
   }
 
@@ -90,6 +91,8 @@ class IDFAService {
       case TrackingStatus.restricted:
         return 'orange';
       case TrackingStatus.notDetermined:
+        return 'grey';
+      case TrackingStatus.notSupported:
         return 'grey';
     }
   }
