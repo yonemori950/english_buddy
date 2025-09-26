@@ -15,19 +15,37 @@ class UserProvider with ChangeNotifier {
 
   // ユーザー認証状態を監視
   void initAuth() {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
-      if (user != null) {
-        // ユーザーがログインしている場合
-        await _loadUserData(user.uid);
-        // 非アクティブ通知をキャンセル
-        await NotificationService.cancelInactivityReminder();
-      } else {
-        // ユーザーがログアウトしている場合
-        _currentUser = null;
-        _isLoading = false;
-        notifyListeners();
-      }
-    });
+    try {
+      FirebaseAuth.instance.authStateChanges().listen((User? user) async {
+        try {
+          if (user != null) {
+            // ユーザーがログインしている場合
+            await _loadUserData(user.uid);
+            // 非アクティブ通知をキャンセル（サービスが初期化されている場合のみ）
+            try {
+              await NotificationService.cancelInactivityReminder();
+            } catch (e) {
+              print('Notification service not ready: $e');
+            }
+          } else {
+            // ユーザーがログアウトしている場合
+            _currentUser = null;
+            _isLoading = false;
+            notifyListeners();
+          }
+        } catch (e) {
+          print('Auth state change error: $e');
+          _error = '認証エラー: $e';
+          _isLoading = false;
+          notifyListeners();
+        }
+      });
+    } catch (e) {
+      print('Auth initialization error: $e');
+      _error = '認証の初期化に失敗しました: $e';
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   // ユーザーデータを読み込み
@@ -86,8 +104,12 @@ class UserProvider with ChangeNotifier {
       await UserService.updateScore(_currentUser!.uid, tag, isCorrect);
       // ユーザーデータを再読み込み
       await _loadUserData(_currentUser!.uid);
-      // 励まし通知を表示
-      await NotificationService.showEncouragementNotification();
+      // 励まし通知を表示（サービスが初期化されている場合のみ）
+      try {
+        await NotificationService.showEncouragementNotification();
+      } catch (e) {
+        print('Notification service not ready: $e');
+      }
     } catch (e) {
       _error = 'スコア更新エラー: $e';
       notifyListeners();
@@ -110,5 +132,28 @@ class UserProvider with ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  // ユーザー名を更新
+  Future<bool> updateUserName(String newName) async {
+    if (_currentUser == null) return false;
+
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      await UserService.updateUserName(_currentUser!.uid, newName);
+      
+      // ユーザーデータを再読み込み
+      await _loadUserData(_currentUser!.uid);
+      
+      return true;
+    } catch (e) {
+      _error = '名前の更新に失敗しました: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

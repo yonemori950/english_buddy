@@ -5,19 +5,38 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class FirebaseService {
   static bool _isInitialized = false;
+  static bool _isInitializing = false;
   static FirebaseAuth? _auth;
   static FirebaseFirestore? _firestore;
   static FirebaseStorage? _storage;
 
   static Future<void> initialize() async {
     if (_isInitialized) return;
+    if (_isInitializing) {
+      // Wait for ongoing initialization to complete
+      while (_isInitializing && !_isInitialized) {
+        await Future.delayed(const Duration(milliseconds: 50));
+      }
+      return;
+    }
     
-    await Firebase.initializeApp();
-    _auth = FirebaseAuth.instance;
-    _firestore = FirebaseFirestore.instance;
-    _storage = FirebaseStorage.instance;
+    _isInitializing = true;
     
-    _isInitialized = true;
+    try {
+      print('Initializing Firebase...');
+      await Firebase.initializeApp();
+      _auth = FirebaseAuth.instance;
+      _firestore = FirebaseFirestore.instance;
+      _storage = FirebaseStorage.instance;
+      
+      print('Firebase initialized successfully');
+      _isInitialized = true;
+    } catch (e) {
+      print('Firebase initialization failed: $e');
+      throw e;
+    } finally {
+      _isInitializing = false;
+    }
   }
 
   static FirebaseAuth get auth {

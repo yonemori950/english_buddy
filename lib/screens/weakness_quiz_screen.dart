@@ -21,6 +21,7 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
   bool isAnswered = false;
   String? selectedAnswer;
   bool isLoading = true;
+  List<Map<String, dynamic>> wrongAnswers = []; // 間違えた問題の情報を記録
 
   @override
   void initState() {
@@ -79,6 +80,15 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
 
     if (isCorrect) {
       correctAnswers++;
+    } else {
+      // 間違えた問題の情報を記録
+      wrongAnswers.add({
+        'id': currentQuestion.id,
+        'question': currentQuestion.question,
+        'userAnswer': answer,
+        'correctAnswer': currentQuestion.answer,
+        'tag': currentQuestion.tag,
+      });
     }
 
     // タグ別の結果を記録
@@ -115,6 +125,7 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
           score: score,
           expGained: expGained,
           tagResults: tagResults,
+          wrongAnswers: wrongAnswers, // 間違えた問題の情報を渡す
         ),
       ),
     );
@@ -203,7 +214,7 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
           
           // 問題文
           Expanded(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -255,6 +266,7 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
                                 const Spacer(),
                                 AudioPlayerButton(
                                   audioPath: currentQuestion.audio,
+                                  textToSpeak: _extractListeningText(currentQuestion.question),
                                   size: 40,
                                   color: Colors.purple,
                                 ),
@@ -276,51 +288,47 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
                   const SizedBox(height: 24),
                   
                   // 選択肢
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: currentQuestion.choices.length,
-                      itemBuilder: (context, index) {
-                        final choice = currentQuestion.choices[index];
-                        final isSelected = selectedAnswer == choice;
-                        final isCorrect = choice == currentQuestion.answer;
-                        
-                        Color? backgroundColor;
-                        Color? textColor;
-                        
-                        if (isAnswered) {
-                          if (isCorrect) {
-                            backgroundColor = Colors.green[100];
-                            textColor = Colors.green[800];
-                          } else if (isSelected && !isCorrect) {
-                            backgroundColor = Colors.red[100];
-                            textColor = Colors.red[800];
-                          }
-                        } else if (isSelected) {
-                          backgroundColor = Colors.orange[100];
-                          textColor = Colors.orange[800];
-                        }
-                        
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ElevatedButton(
-                            onPressed: () => _selectAnswer(choice),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: backgroundColor,
-                              foregroundColor: textColor,
-                              padding: const EdgeInsets.all(16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              choice,
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                  ...currentQuestion.choices.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final choice = entry.value;
+                    final isSelected = selectedAnswer == choice;
+                    final isCorrect = choice == currentQuestion.answer;
+                    
+                    Color? backgroundColor;
+                    Color? textColor;
+                    
+                    if (isAnswered) {
+                      if (isCorrect) {
+                        backgroundColor = Colors.green[100];
+                        textColor = Colors.green[800];
+                      } else if (isSelected && !isCorrect) {
+                        backgroundColor = Colors.red[100];
+                        textColor = Colors.red[800];
+                      }
+                    } else if (isSelected) {
+                      backgroundColor = Colors.orange[100];
+                      textColor = Colors.orange[800];
+                    }
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ElevatedButton(
+                        onPressed: () => _selectAnswer(choice),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: backgroundColor,
+                          foregroundColor: textColor,
+                          padding: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                        child: Text(
+                          choice,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                   
                   // 次へボタン
                   if (isAnswered)
@@ -339,6 +347,8 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
+                  
+                  const SizedBox(height: 16), // 下部の余白
                 ],
               ),
             ),
@@ -376,5 +386,19 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
       default:
         return tag;
     }
+  }
+
+  // リスニング問題から音声化するテキストを抽出
+  String _extractListeningText(String questionText) {
+    // リスニング問題の形式: "Q: What does the woman want to buy?\nA) A new bag\nB) A pair of shoes\nC) A hat\nD) A coat"
+    // 質問部分のみを抽出して音声化
+    final lines = questionText.split('\n');
+    if (lines.isNotEmpty) {
+      final questionLine = lines[0];
+      if (questionLine.startsWith('Q: ')) {
+        return questionLine.substring(3); // "Q: "を除去
+      }
+    }
+    return questionText;
   }
 }

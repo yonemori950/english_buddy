@@ -45,7 +45,8 @@ class UserService {
     try {
       final DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
-        return app_user.User.fromJson(doc.data() as Map<String, dynamic>);
+        final data = doc.data() as Map<String, dynamic>;
+        return app_user.User.fromJson(data);
       }
       return null;
     } catch (e) {
@@ -63,6 +64,26 @@ class UserService {
     }
   }
 
+  // ユーザー名を更新
+  static Future<void> updateUserName(String uid, String newName) async {
+    try {
+      await _firestore.collection('users').doc(uid).update({
+        'name': newName,
+        'updated': DateTime.now().toIso8601String(),
+      });
+      
+      // ランキングの名前も更新
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        await RankingService.updateRanking(uid, newName, data['exp'] ?? 0, data['level'] ?? 1);
+      }
+    } catch (e) {
+      print('Error updating user name: $e');
+      throw e;
+    }
+  }
+
   // スコアを更新
   static Future<void> updateScore(String uid, String tag, bool isCorrect) async {
     try {
@@ -72,10 +93,10 @@ class UserService {
       if (doc.exists) {
         final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         final Map<String, Map<String, int>> scores = Map<String, Map<String, int>>.from(
-          data['scores'].map(
+          (data['scores'] as Map).map(
             (key, value) => MapEntry(
-              key,
-              Map<String, int>.from(value),
+              key as String,
+              Map<String, int>.from(value as Map),
             ),
           ),
         );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/rewarded_ad_service.dart';
+import '../services/explanation_service.dart';
+import '../widgets/explanation_dialog.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final int correctAnswers;
@@ -7,6 +9,7 @@ class QuizResultScreen extends StatefulWidget {
   final int score;
   final int expGained;
   final Map<String, int> tagResults;
+  final List<Map<String, dynamic>> wrongAnswers;
 
   const QuizResultScreen({
     super.key,
@@ -15,6 +18,7 @@ class QuizResultScreen extends StatefulWidget {
     required this.score,
     required this.expGained,
     required this.tagResults,
+    required this.wrongAnswers,
   });
 
   @override
@@ -29,6 +33,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     super.initState();
     // リワード広告を事前読み込み
     RewardedAdService.loadRewardedAd();
+    // 解説データを読み込み
+    ExplanationService.loadExplanations();
   }
 
   void _showRewardedAd() {
@@ -50,15 +56,66 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   }
 
   void _showExplanationDialog() {
+    if (widget.wrongAnswers.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('解説'),
+          content: const Text('間違えた問題がありません。\n素晴らしい結果です！'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('解説を見る'),
-        content: const Text('広告をご覧いただき、ありがとうございます！\n\n間違えた問題の詳細な解説を表示します。'),
+        title: const Text('間違えた問題の解説'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView.builder(
+            itemCount: widget.wrongAnswers.length,
+            itemBuilder: (context, index) {
+              final wrongAnswer = widget.wrongAnswers[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  title: Text(
+                    '問題 ${wrongAnswer['id']}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    wrongAnswer['question'],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ExplanationDialog.show(
+                      context,
+                      questionId: wrongAnswer['id'],
+                      questionText: wrongAnswer['question'],
+                      userAnswer: wrongAnswer['userAnswer'],
+                      correctAnswer: wrongAnswer['correctAnswer'],
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: const Text('閉じる'),
           ),
         ],
       ),
@@ -86,7 +143,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,8 +282,23 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // 苦手分野をリスト形式で表示
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: _getWeakAreas().map((area) => Chip(
+                              label: Text(
+                                area,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              backgroundColor: Colors.red[50],
+                              side: BorderSide(color: Colors.red[200]!),
+                              labelStyle: TextStyle(color: Colors.red[700]),
+                            )).toList(),
+                          ),
+                          const SizedBox(height: 8),
                           Text(
-                            _getWeakAreasText(),
+                            '復習をおすすめします',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -276,7 +348,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                     ),
                   ),
                 
-                const Spacer(),
+                const SizedBox(height: 24),
                 
                 // アクションボタン
                 Row(
@@ -322,6 +394,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                     ),
                   ],
                 ),
+                
+                const SizedBox(height: 24), // 下部の余白
               ],
             ),
           ),
@@ -390,9 +464,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   }
 
   int _getTotalQuestionsForTag(String tag) {
-    // 実際の実装では、各タグの総問題数を計算する必要があります
-    // ここでは簡易的に正解数から推定します
-    return widget.tagResults[tag] ?? 0;
+    // 各タグの総問題数を計算（500問中125問ずつ）
+    return 125;
   }
 
   bool _hasWeakAreas() {
@@ -404,14 +477,12 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     });
   }
 
-  String _getWeakAreasText() {
-    final weakAreas = widget.tagResults.entries.where((entry) {
+  List<String> _getWeakAreas() {
+    return widget.tagResults.entries.where((entry) {
       final correctCount = entry.value;
       final totalCount = _getTotalQuestionsForTag(entry.key);
       final accuracy = totalCount > 0 ? correctCount / totalCount : 0.0;
       return accuracy < 0.6;
     }).map((entry) => _getTagName(entry.key)).toList();
-
-    return weakAreas.join('、') + 'の復習をおすすめします。';
   }
 }

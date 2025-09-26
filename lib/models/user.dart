@@ -17,19 +17,19 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      uid: json['uid'],
-      name: json['name'],
-      level: json['level'],
-      exp: json['exp'],
+      uid: json['uid'] as String,
+      name: json['name'] as String,
+      level: json['level'] as int,
+      exp: json['exp'] as int,
       scores: Map<String, Map<String, int>>.from(
-        json['scores'].map(
+        (json['scores'] as Map).map(
           (key, value) => MapEntry(
-            key,
-            Map<String, int>.from(value),
+            key as String,
+            Map<String, int>.from(value as Map),
           ),
         ),
       ),
-      updated: DateTime.parse(json['updated']),
+      updated: DateTime.parse(json['updated'] as String),
     );
   }
 

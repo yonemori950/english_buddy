@@ -168,7 +168,23 @@ class HomeScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('英検2級クイズ'),
+        title: GestureDetector(
+          onTap: () => _showNameChangeDialog(context, userProvider, user.name),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '英検2級クイズ',
+                style: TextStyle(fontSize: 18),
+              ),
+              Text(
+                'こんにちは、${user.name}さん',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+              ),
+            ],
+          ),
+        ),
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
         actions: [
@@ -403,6 +419,73 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showNameChangeDialog(BuildContext context, UserProvider userProvider, String currentName) {
+    final TextEditingController nameController = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('名前を変更'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('新しい名前を入力してください'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '名前',
+                  border: OutlineInputBorder(),
+                  hintText: '例: 田中太郎',
+                ),
+                maxLength: 20,
+                textCapitalization: TextCapitalization.words,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newName = nameController.text.trim();
+                if (newName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('名前を入力してください')),
+                  );
+                  return;
+                }
+                
+                if (newName == currentName) {
+                  Navigator.of(context).pop();
+                  return;
+                }
+                
+                Navigator.of(context).pop();
+                
+                // 名前を更新
+                final success = await userProvider.updateUserName(newName);
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('名前を変更しました')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(userProvider.error ?? '名前の変更に失敗しました')),
+                  );
+                }
+              },
+              child: const Text('変更'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

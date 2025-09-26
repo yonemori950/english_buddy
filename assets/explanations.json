@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "question": "He _____ to the store yesterday.",
+    "explanation": "この問題は過去形の動詞を選ぶ問題です。\n\n「yesterday（昨日）」という時間表現があるため、過去形の「went」が正解です。\n\n・go（現在形）\n・goes（三人称単数現在形）\n・went（過去形）← 正解\n・gone（過去分詞）\n\n過去形の不規則動詞を覚えることが重要です。"
+  },
+  {
+    "id": 2,
+    "question": "If I _____ enough money, I would buy a new car.",
+    "explanation": "この問題は仮定法過去の問題です。\n\n「If I had enough money, I would buy a new car.」\n（もし十分なお金があれば、新しい車を買うだろう）\n\n仮定法過去では：\n・If節：過去形（had）\n・主節：would + 動詞の原形\n\n・have（現在形）\n・had（過去形）← 正解\n・has（三人称単数現在形）\n・having（現在分詞）"
+  },
+  {
+    "id": 3,
+    "question": "She has lived in Tokyo _____ 2010.",
+    "explanation": "この問題は完了時制の前置詞を選ぶ問題です。\n\n「She has lived in Tokyo since 2010.」\n（彼女は2010年から東京に住んでいる）\n\n完了時制で「〜から」を表す前置詞：\n・since：過去の特定の時点から現在まで\n・for：期間を表す（for 5 years など）\n・from：起点を表す（from Monday to Friday など）\n・by：期限を表す（by tomorrow など）\n\n・for（期間）\n・since（時点）← 正解\n・from（起点）\n・by（期限）"
+  },
+  {
+    "id": 4,
+    "question": "It is important that he _____ on time.",
+    "explanation": "この問題は仮定法現在（原形不定詞）の問題です。\n\n「It is important that he arrive on time.」\n（彼が時間通りに到着することが重要だ）\n\n「It is important that + 主語 + 動詞の原形」\nこの構文では動詞の原形を使います。\n\n・arrives（三人称単数現在形）\n・arrive（原形）← 正解\n・arrived（過去形）\n・arriving（現在分詞）\n\n同様の構文：\n・It is necessary that...\n・It is essential that...\n・It is vital that..."
+  },
+  {
+    "id": 5,
+    "question": "This book is _____ than the one I read last week.",
+    "explanation": "この問題は比較級の問題です。\n\n「This book is more interesting than the one I read last week.」\n（この本は先週読んだ本よりも面白い）\n\n比較級の作り方：\n・短い形容詞：形容詞 + er + than\n・長い形容詞：more + 形容詞 + than\n\n「interesting」は3音節以上の長い形容詞なので「more interesting」になります。\n\n・interesting（原級）\n・more interesting（比較級）← 正解\n・most interesting（最上級）\n・interest（名詞）"
+  },
+  {
+    "id": 6,
+    "question": "She is very _____ in classical music.",
+    "explanation": "この問題は形容詞の使い分けの問題です。\n\n「She is very interested in classical music.」\n（彼女はクラシック音楽にとても興味がある）\n\n-ed形容詞と-ing形容詞の使い分け：\n・-ed形容詞：人の感情・状態を表す\n・-ing形容詞：物事の性質・特徴を表す\n\n・interested（興味を持っている）← 正解\n・interesting（興味深い）\n・interest（興味・名詞）\n・interests（興味・複数形）\n\n例：\n・I am interested in music.（私は音楽に興味がある）\n・Music is interesting.（音楽は興味深い）"
+  },
+  {
+    "id": 7,
+    "question": "The company will _____ a new product next month.",
+    "explanation": "この問題は動詞の語彙問題です。\n\n「The company will release a new product next month.」\n（会社は来月新しい製品を発売する予定だ）\n\n動詞の意味：\n・release：発売する、公開する、解放する\n・relieve：安心させる、軽減する\n・realize：気づく、実現する\n・rely：頼る（rely on で使用）\n\n・release（発売する）← 正解\n・relieve（安心させる）\n・realize（気づく）\n・rely（頼る）\n\n関連表現：\n・release a movie（映画を公開する）\n・release from prison（刑務所から釈放する）"
+  },
+  {
+    "id": 8,
+    "question": "His opinion had a great _____ on the decision.",
+    "explanation": "この問題は名詞の語彙問題です。\n\n「His opinion had a great influence on the decision.」\n（彼の意見はその決定に大きな影響を与えた）\n\n名詞の意味：\n・influence：影響（have influence on で使用）\n・inflation：インフレーション\n・inform：知らせる（動詞）\n・infection：感染\n\n・influence（影響）← 正解\n・inflation（インフレ）\n・inform（知らせる）\n・infection（感染）\n\n関連表現：\n・have an influence on（〜に影響を与える）\n・under the influence of（〜の影響下で）"
+  },
+  {
+    "id": 9,
+    "question": "She finally _____ her dream of becoming a doctor.",
+    "explanation": "この問題は動詞の語彙問題です。\n\n「She finally achieved her dream of becoming a doctor.」\n（彼女はついに医者になるという夢を実現した）\n\n動詞の意味：\n・achieve：達成する、実現する\n・receive：受け取る\n・deceive：だます\n・believe：信じる\n\n・achieved（達成した）← 正解\n・received（受け取った）\n・deceived（だました）\n・believed（信じた）\n\n関連表現：\n・achieve success（成功を収める）\n・achieve one's goal（目標を達成する）"
+  },
+  {
+    "id": 10,
+    "question": "The teacher asked us to _____ the essay by tomorrow.",
+    "explanation": "この問題は動詞の語彙問題です。\n\n「The teacher asked us to submit the essay by tomorrow.」\n（先生は明日までにエッセイを提出するよう私たちに頼んだ）\n\n動詞の意味：\n・submit：提出する、服従する\n・admit：認める、入学させる\n・permit：許可する\n・omit：省略する\n\n・submit（提出する）← 正解\n・admit（認める）\n・permit（許可する）\n・omit（省略する）\n\n関連表現：\n・submit an application（申請書を提出する）\n・submit to authority（権威に服従する）"
+  }
+]

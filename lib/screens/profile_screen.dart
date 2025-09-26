@@ -60,12 +60,23 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              user.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  user.name,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20),
+                                  onPressed: () => _showNameChangeDialog(context, userProvider, user.name),
+                                  tooltip: '名前を変更',
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -413,5 +424,72 @@ class ProfileScreen extends StatelessWidget {
       case 'weak': return Colors.red;
       default: return Colors.grey;
     }
+  }
+
+  void _showNameChangeDialog(BuildContext context, UserProvider userProvider, String currentName) {
+    final TextEditingController nameController = TextEditingController(text: currentName);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('名前を変更'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('新しい名前を入力してください'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '名前',
+                  border: OutlineInputBorder(),
+                  hintText: '例: 田中太郎',
+                ),
+                maxLength: 20,
+                textCapitalization: TextCapitalization.words,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newName = nameController.text.trim();
+                if (newName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('名前を入力してください')),
+                  );
+                  return;
+                }
+                
+                if (newName == currentName) {
+                  Navigator.of(context).pop();
+                  return;
+                }
+                
+                Navigator.of(context).pop();
+                
+                // 名前を更新
+                final success = await userProvider.updateUserName(newName);
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('名前を変更しました')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(userProvider.error ?? '名前の変更に失敗しました')),
+                  );
+                }
+              },
+              child: const Text('変更'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

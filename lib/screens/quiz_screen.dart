@@ -21,6 +21,7 @@ class _QuizScreenState extends State<QuizScreen> {
   bool isAnswered = false;
   String? selectedAnswer;
   bool isLoading = true;
+  List<Map<String, dynamic>> wrongAnswers = []; // 間違えた問題の情報を記録
 
   @override
   void initState() {
@@ -49,6 +50,15 @@ class _QuizScreenState extends State<QuizScreen> {
 
     if (isCorrect) {
       correctAnswers++;
+    } else {
+      // 間違えた問題の情報を記録
+      wrongAnswers.add({
+        'id': currentQuestion.id,
+        'question': currentQuestion.question,
+        'userAnswer': answer,
+        'correctAnswer': currentQuestion.answer,
+        'tag': currentQuestion.tag,
+      });
     }
 
     // タグ別の結果を記録
@@ -85,6 +95,7 @@ class _QuizScreenState extends State<QuizScreen> {
           score: score,
           expGained: expGained,
           tagResults: tagResults,
+          wrongAnswers: wrongAnswers, // 間違えた問題の情報を渡す
         ),
       ),
     );
@@ -225,6 +236,7 @@ class _QuizScreenState extends State<QuizScreen> {
                                 const Spacer(),
                                 AudioPlayerButton(
                                   audioPath: currentQuestion.audio,
+                                  textToSpeak: null, // 音声ファイルを優先するためTTSを無効化
                                   size: 40,
                                   color: Colors.purple,
                                 ),
@@ -346,5 +358,83 @@ class _QuizScreenState extends State<QuizScreen> {
       default:
         return tag;
     }
+  }
+
+  // リスニング問題から音声化するテキストを抽出
+  String _extractListeningText(String questionText) {
+    // リスニング問題の形式: "Q: What does the woman want to buy?\nA) A new bag\nB) A pair of shoes\nC) A hat\nD) A coat"
+    // 質問部分のみを抽出して音声化
+    final lines = questionText.split('\n');
+    if (lines.isNotEmpty) {
+      final questionLine = lines[0];
+      if (questionLine.startsWith('Q: ')) {
+        return questionLine.substring(3); // "Q: "を除去
+      }
+    }
+    
+    // フォールバック: 質問文全体を返す
+    return questionText;
+  }
+
+  // リスニング問題用の会話を生成
+  String _generateListeningConversation(Question question) {
+    final questionText = question.question;
+    final answer = question.answer;
+    
+    // 質問の内容に基づいて会話を生成
+    if (questionText.contains('What does the man want to do?')) {
+      if (answer.contains('dinner')) {
+        return "What would you like to do tonight? I'm hungry, let's have dinner.";
+      } else if (answer.contains('shopping')) {
+        return "What would you like to do? I need to go shopping for groceries.";
+      } else if (answer.contains('movie')) {
+        return "What would you like to do? Let's watch a movie at home.";
+      } else if (answer.contains('walk')) {
+        return "What would you like to do? Let's take a walk in the park.";
+      }
+    } else if (questionText.contains('Where are the speakers going?')) {
+      if (answer.contains('restaurant')) {
+        return "Where should we go for lunch? How about the restaurant on Main Street?";
+      } else if (answer.contains('park')) {
+        return "Where should we go? Let's go to the park for a picnic.";
+      } else if (answer.contains('library')) {
+        return "Where should we go? I need to return some books to the library.";
+      } else if (answer.contains('station')) {
+        return "Where should we go? We need to catch the train at the station.";
+      }
+    } else if (questionText.contains('What time is the appointment?')) {
+      if (answer.contains('2:00 PM')) {
+        return "What time is your appointment? It's at 2:00 PM.";
+      } else if (answer.contains('3:00 PM')) {
+        return "What time is your appointment? It's at 3:00 PM.";
+      } else if (answer.contains('4:00 PM')) {
+        return "What time is your appointment? It's at 4:00 PM.";
+      } else if (answer.contains('5:00 PM')) {
+        return "What time is your appointment? It's at 5:00 PM.";
+      }
+    } else if (questionText.contains('What does the woman suggest?')) {
+      if (answer.contains('taxi')) {
+        return "How should we get there? Let's take a taxi.";
+      } else if (answer.contains('bus')) {
+        return "How should we get there? Let's take the bus.";
+      } else if (answer.contains('walking')) {
+        return "How should we get there? It's not far, let's walk.";
+      } else if (answer.contains('driving')) {
+        return "How should we get there? I can drive us there.";
+      }
+    } else if (questionText.contains('What is the weather like?')) {
+      if (answer.contains('Sunny')) {
+        return "How's the weather today? It's sunny and warm.";
+      } else if (answer.contains('Rainy')) {
+        return "How's the weather today? It's rainy and cold.";
+      } else if (answer.contains('Cloudy')) {
+        return "How's the weather today? It's cloudy and cool.";
+      } else if (answer.contains('Snowy')) {
+        return "How's the weather today? It's snowy and freezing.";
+      }
+    }
+    
+    // デフォルト: 質問文をそのまま返す
+    return _extractListeningText(questionText);
   }
 }

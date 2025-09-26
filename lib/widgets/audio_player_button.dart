@@ -3,12 +3,14 @@ import '../services/audio_service.dart';
 
 class AudioPlayerButton extends StatefulWidget {
   final String? audioPath;
+  final String? textToSpeak;
   final double size;
   final Color? color;
 
   const AudioPlayerButton({
     super.key,
     this.audioPath,
+    this.textToSpeak,
     this.size = 48.0,
     this.color,
   });
@@ -46,23 +48,45 @@ class _AudioPlayerButtonState extends State<AudioPlayerButton>
   }
 
   Future<void> _toggleAudio() async {
-    if (widget.audioPath == null) {
+    if (widget.audioPath == null && widget.textToSpeak == null) {
       _showNoAudioDialog();
       return;
     }
 
-    setState(() {
-      _isPlaying = !_isPlaying;
-    });
-
     if (_isPlaying) {
-      _animationController.repeat(reverse: true);
-      await AudioService.playAudio(widget.audioPath!);
-    } else {
+      // 停止
+      setState(() {
+        _isPlaying = false;
+      });
       _animationController.stop();
       _animationController.reset();
       await AudioService.stopAudio();
+    } else {
+      // 再生開始
+      setState(() {
+        _isPlaying = true;
+      });
+      _animationController.repeat(reverse: true);
+      
+      // 音声ファイルまたはTTSで再生
+      await AudioService.playAudioOrSpeak(widget.audioPath, widget.textToSpeak);
+      
+      // 再生完了を監視
+      _monitorPlayback();
     }
+  }
+
+  void _monitorPlayback() {
+    // 定期的に再生状態をチェック
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && !AudioService.isPlaying && _isPlaying) {
+        setState(() {
+          _isPlaying = false;
+        });
+        _animationController.stop();
+        _animationController.reset();
+      }
+    });
   }
 
   void _showNoAudioDialog() {
@@ -70,7 +94,7 @@ class _AudioPlayerButtonState extends State<AudioPlayerButton>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('音声なし'),
-        content: const Text('この問題には音声ファイルがありません。'),
+        content: const Text('この問題には音声ファイルもテキストもありません。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
