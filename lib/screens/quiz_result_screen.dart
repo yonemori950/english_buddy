@@ -56,6 +56,12 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   }
 
   void _showExplanationDialog() {
+    if (!_hasWatchedAd) {
+      // 広告を視聴していない場合は広告を表示
+      _showRewardedAd();
+      return;
+    }
+
     if (widget.wrongAnswers.isEmpty) {
       showDialog(
         context: context,
@@ -306,36 +312,18 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                           ),
                           const SizedBox(height: 16),
                           // 解説ボタン
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _showExplanationDialog,
-                                  icon: const Icon(Icons.lightbulb),
-                                  label: const Text('解説を確認'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[600],
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                  ),
-                                ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _hasWatchedAd ? _showExplanationDialog : _showRewardedAd,
+                              icon: Icon(_hasWatchedAd ? Icons.lightbulb : Icons.play_circle_outline),
+                              label: Text(_hasWatchedAd ? '解説を確認' : '広告を見て解説を確認'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _hasWatchedAd ? Colors.blue[600] : Colors.orange[600],
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
-                              if (!_hasWatchedAd) ...[
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: _showRewardedAd,
-                                    icon: const Icon(Icons.play_circle_outline),
-                                    label: const Text('広告で解説'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.orange[600],
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
+                            ),
                           ),
                         ],
                       ),
