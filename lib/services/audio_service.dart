@@ -118,6 +118,8 @@ class AudioService {
         print('Audio file $audioPath not found, using TTS for: $text');
         if (text != null && text.isNotEmpty) {
           await speakText(text);
+        } else {
+          print('No text provided for TTS fallback');
         }
       }
     } else if (text != null && text.isNotEmpty) {

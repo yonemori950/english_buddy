@@ -305,44 +305,38 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // リワード広告ボタン
-                          if (!_hasWatchedAd)
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _showRewardedAd,
-                                icon: const Icon(Icons.play_circle_outline),
-                                label: const Text('広告を見て解説を確認'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange[600],
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                          // 解説ボタン
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _showExplanationDialog,
+                                  icon: const Icon(Icons.lightbulb),
+                                  label: const Text('解説を確認'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue[600],
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                  ),
                                 ),
                               ),
-                            ),
-                          if (_hasWatchedAd)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.green[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.green[200]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.check_circle, color: Colors.green[600]),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '解説を確認済み',
-                                    style: TextStyle(
-                                      color: Colors.green[800],
-                                      fontWeight: FontWeight.bold,
+                              if (!_hasWatchedAd) ...[
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _showRewardedAd,
+                                    icon: const Icon(Icons.play_circle_outline),
+                                    label: const Text('広告で解説'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange[600],
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
                     ),
