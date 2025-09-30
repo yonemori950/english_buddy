@@ -6,6 +6,8 @@ import 'services/firebase_service.dart';
 import 'services/notification_service.dart';
 import 'services/idfa_service.dart';
 import 'services/tts_service.dart';
+import 'services/subscription_service.dart';
+import 'services/sound_service.dart';
 import 'providers/user_provider.dart';
 
 void main() async {
@@ -34,6 +36,8 @@ void _initializeNonCriticalServices() async {
     NotificationService.initialize(),
     IDFAService.initialize(),
     TTSService.initialize(),
+    SubscriptionService.initialize(),
+    SoundService.loadSoundSettings(),
   ]);
 }
 

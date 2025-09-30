@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/question.dart';
 import '../services/quiz_service.dart';
+import '../services/interstitial_ad_service.dart';
 import '../widgets/audio_player_button.dart';
 import '../providers/user_provider.dart';
 import 'quiz_result_screen.dart';
@@ -26,6 +27,8 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
   @override
   void initState() {
     super.initState();
+    // インタースティシャル広告を事前読み込み
+    InterstitialAdService.loadInterstitialAd();
     _loadQuestions();
   }
 
@@ -112,23 +115,28 @@ class _WeaknessQuizScreenState extends State<WeaknessQuizScreen> {
     }
   }
 
-  void _finishQuiz() {
+  void _finishQuiz() async {
     final score = correctAnswers * 10;
     final expGained = correctAnswers * 10 + (questions.length - correctAnswers) * 2;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QuizResultScreen(
-          correctAnswers: correctAnswers,
-          totalQuestions: questions.length,
-          score: score,
-          expGained: expGained,
-          tagResults: tagResults,
-          wrongAnswers: wrongAnswers, // 間違えた問題の情報を渡す
+    // インタースティシャル広告を表示
+    await InterstitialAdService.showInterstitialAd();
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QuizResultScreen(
+            correctAnswers: correctAnswers,
+            totalQuestions: questions.length,
+            score: score,
+            expGained: expGained,
+            tagResults: tagResults,
+            wrongAnswers: wrongAnswers, // 間違えた問題の情報を渡す
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override

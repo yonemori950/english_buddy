@@ -6,6 +6,7 @@ import 'ranking_screen.dart';
 import 'profile_screen.dart';
 import 'notification_settings_screen.dart';
 import 'idfa_settings_screen.dart';
+import 'subscription_screen.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../providers/user_provider.dart';
 
@@ -212,6 +213,15 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const IDFASettingsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.star),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
               );
             },
           ),

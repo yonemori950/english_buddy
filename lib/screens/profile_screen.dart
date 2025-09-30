@@ -3,9 +3,22 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../providers/user_provider.dart';
 import '../services/weakness_analysis_service.dart';
+import '../services/sound_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 音声設定を読み込み
+    SoundService.loadSoundSettings();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,6 +263,41 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               );
                             }).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 設定セクション
+                    Card(
+                      elevation: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '設定',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            // 音声設定
+                            ListTile(
+                              leading: const Icon(Icons.volume_up),
+                              title: const Text('効果音'),
+                              subtitle: const Text('正解・不正解の音声効果'),
+                              trailing: Switch(
+                                value: SoundService.isSoundEnabled,
+                                onChanged: (value) async {
+                                  await SoundService.setSoundEnabled(value);
+                                  setState(() {}); // 状態を更新
+                                },
+                              ),
+                            ),
                           ],
                         ),
                       ),

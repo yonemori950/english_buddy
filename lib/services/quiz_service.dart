@@ -34,6 +34,13 @@ class QuizService {
     return shuffled.take(count).toList();
   }
 
+  static List<Question> getRandomQuestionsFromList(List<Question> questionList, int count) {
+    if (questionList.isEmpty) return [];
+    
+    final shuffled = List<Question>.from(questionList)..shuffle();
+    return shuffled.take(count).toList();
+  }
+
   static List<Question> getWeaknessQuestions(List<String> weakTags, int count) {
     if (_questions.isEmpty) return [];
     

@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/question.dart';
 import '../services/quiz_service.dart';
+import '../services/premium_service.dart';
+import '../services/progress_service.dart';
+import '../services/sound_service.dart';
 import '../widgets/audio_player_button.dart';
 import '../providers/user_provider.dart';
 import 'quiz_result_screen.dart';
+import 'subscription_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -22,6 +26,7 @@ class _QuizScreenState extends State<QuizScreen> {
   String? selectedAnswer;
   bool isLoading = true;
   List<Map<String, dynamic>> wrongAnswers = []; // 間違えた問題の情報を記録
+  DateTime? _quizStartTime; // クイズ開始時間
 
   @override
   void initState() {
@@ -31,9 +36,14 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> _loadQuestions() async {
     final loadedQuestions = await QuizService.loadQuestions();
+    
+    // プレミアム機能の制限を適用
+    final filteredQuestions = PremiumService.filterQuestionsForUser(loadedQuestions);
+    
     setState(() {
-      questions = QuizService.getRandomQuestions(10); // 10問ランダム出題
+      questions = QuizService.getRandomQuestionsFromList(filteredQuestions, 10); // 10問ランダム出題
       isLoading = false;
+      _quizStartTime = DateTime.now(); // クイズ開始時間を記録
     });
   }
 
@@ -48,9 +58,12 @@ class _QuizScreenState extends State<QuizScreen> {
     final currentQuestion = questions[currentQuestionIndex];
     final isCorrect = answer == currentQuestion.answer;
 
+    // 音声効果を再生
     if (isCorrect) {
+      SoundService.playCorrectSound();
       correctAnswers++;
     } else {
+      SoundService.playIncorrectSound();
       // 間違えた問題の情報を記録
       wrongAnswers.add({
         'id': currentQuestion.id,
@@ -82,9 +95,20 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
-  void _finishQuiz() {
+  void _finishQuiz() async {
     final score = correctAnswers * 10; // 正解1問につき10点
     final expGained = correctAnswers * 10 + (questions.length - correctAnswers) * 2; // 正解+10、不正解+2
+
+    // 学習進捗を保存
+    if (_quizStartTime != null) {
+      final timeSpent = DateTime.now().difference(_quizStartTime!).inSeconds;
+      await ProgressService.saveDailyProgress(
+        questionsAnswered: questions.length,
+        correctAnswers: correctAnswers,
+        timeSpent: timeSpent,
+        categoryResults: tagResults,
+      );
+    }
 
     Navigator.pushReplacement(
       context,

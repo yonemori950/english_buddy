@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/rewarded_ad_service.dart';
 import '../services/explanation_service.dart';
+import '../services/interstitial_ad_service.dart';
+import '../services/premium_service.dart';
 import '../widgets/explanation_dialog.dart';
 
 class QuizResultScreen extends StatefulWidget {
@@ -31,13 +33,27 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   @override
   void initState() {
     super.initState();
-    // リワード広告を事前読み込み
-    RewardedAdService.loadRewardedAd();
+    // 広告が有効な場合のみ広告を読み込み
+    if (PremiumService.shouldShowAds()) {
+      // リワード広告を事前読み込み
+      RewardedAdService.loadRewardedAd();
+      // インタースティシャル広告を事前読み込み
+      InterstitialAdService.loadInterstitialAd();
+    }
     // 解説データを読み込み
     ExplanationService.loadExplanations();
   }
 
   void _showRewardedAd() {
+    // 広告が無効な場合は直接解説を表示
+    if (!PremiumService.shouldShowAds()) {
+      setState(() {
+        _hasWatchedAd = true;
+      });
+      _showExplanationDialog();
+      return;
+    }
+    
     RewardedAdService.showRewardedAd(
       onRewarded: () {
         setState(() {
@@ -356,13 +372,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/',
-                            (route) => false,
-                          );
-                        },
+                        onPressed: _goToHome,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[600],
                           foregroundColor: Colors.white,
@@ -384,6 +394,22 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
         ),
       ),
     );
+  }
+
+  void _goToHome() async {
+    // 広告が有効な場合のみインタースティシャル広告を表示
+    if (PremiumService.shouldShowAds()) {
+      await InterstitialAdService.showInterstitialAd();
+    }
+    
+    // ホーム画面に戻る
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/',
+        (route) => false,
+      );
+    }
   }
 
   Widget _buildScoreItem(String label, String value, IconData icon) {
