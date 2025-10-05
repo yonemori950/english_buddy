@@ -147,10 +147,66 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                
+                // Googleログインボタン
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      await userProvider.signInWithGoogle();
+                    },
+                    icon: Image.asset(
+                      'assets/icons/google_logo.png',
+                      width: 24,
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.login, size: 24);
+                      },
+                    ),
+                    label: const Text(
+                      'Googleでログイン',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // メールリンクログインボタン
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      _showEmailLoginDialog(context, userProvider);
+                    },
+                    icon: const Icon(Icons.mail, size: 24),
+                    label: const Text(
+                      'メールでログイン',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 
                 Text(
-                  '匿名でログインします。\nデータは安全に保存されます。',
+                  'ゲストで開始するか、Googleアカウントまたはメールでログインできます。\nデータは安全に保存されます。',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey[500],
@@ -189,6 +245,13 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
         actions: [
+          // Googleで保存ボタン（ゲストユーザーのみ表示）
+          if (userProvider.isCurrentUserGuest)
+            IconButton(
+              icon: const Icon(Icons.link),
+              tooltip: 'Googleで保存',
+              onPressed: () => _showLinkToGoogleDialog(context, userProvider),
+            ),
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
@@ -492,6 +555,239 @@ class HomeScreen extends StatelessWidget {
                 }
               },
               child: const Text('変更'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Googleで保存ダイアログ
+  void _showLinkToGoogleDialog(BuildContext context, UserProvider userProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Googleで保存'),
+          content: const Text(
+            '現在のゲストアカウントをGoogleアカウントにリンクします。\n'
+            'これにより、進捗データが永続的に保存され、他のデバイスでも利用できるようになります。\n\n'
+            'この操作は取り消すことができません。',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                
+                // ローディング表示
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const AlertDialog(
+                    content: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Text('Googleアカウントにリンク中...'),
+                      ],
+                    ),
+                  ),
+                );
+                
+                try {
+                  final success = await userProvider.linkGuestToGoogle();
+                  
+                  // ローディングダイアログを閉じる
+                  Navigator.of(context).pop();
+                  
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Googleアカウントにリンクしました！'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(userProvider.error ?? 'リンクに失敗しました'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // ローディングダイアログを閉じる
+                  Navigator.of(context).pop();
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('エラー: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('リンクする'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // メールログインダイアログを表示
+  void _showEmailLoginDialog(BuildContext context, UserProvider userProvider) {
+    final TextEditingController emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.mail, color: Colors.green),
+              SizedBox(width: 8),
+              Text('メールでログイン'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'メールアドレスを入力してください。\nログイン用のリンクをお送りします。',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'メールアドレス',
+                  hintText: 'example@email.com',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                if (email.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('メールアドレスを入力してください'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                
+                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('有効なメールアドレスを入力してください'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.of(context).pop();
+                
+                // ローディング表示
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const AlertDialog(
+                    content: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Text('メールリンクを送信中...'),
+                      ],
+                    ),
+                  ),
+                );
+                
+                try {
+                  final success = await userProvider.sendSignInLinkToEmail(email);
+                  
+                  // ローディングダイアログを閉じる
+                  Navigator.of(context).pop();
+                  
+                  if (success) {
+                    _showEmailSentDialog(context, email);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(userProvider.error ?? 'メールリンクの送信に失敗しました'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // ローディングダイアログを閉じる
+                  Navigator.of(context).pop();
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('エラー: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('送信'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // メール送信完了ダイアログを表示
+  void _showEmailSentDialog(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green),
+              SizedBox(width: 8),
+              Text('メールを送信しました'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('$email にログイン用のリンクを送信しました。'),
+              const SizedBox(height: 16),
+              const Text(
+                'メール内のリンクをタップしてログインを完了してください。',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
             ),
           ],
         );

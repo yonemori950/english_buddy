@@ -37,6 +37,10 @@ class ExplanationService {
       _isLoaded = true;
       
       print('Loaded ${_explanations.length} explanations');
+      // デバッグ: 最初の数個の解説IDを表示
+      if (_explanations.isNotEmpty) {
+        print('First few explanation IDs: ${_explanations.take(5).map((e) => e.id).toList()}');
+      }
     } catch (e) {
       print('Error loading explanations: $e');
     }
@@ -48,6 +52,7 @@ class ExplanationService {
       return _explanations.firstWhere((exp) => exp.id == id);
     } catch (e) {
       print('Explanation not found for ID: $id');
+      // フォールバック: 問題文で検索を試行
       return null;
     }
   }

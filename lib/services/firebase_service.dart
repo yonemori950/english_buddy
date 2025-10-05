@@ -33,31 +33,35 @@ class FirebaseService {
       _isInitialized = true;
     } catch (e) {
       print('Firebase initialization failed: $e');
-      throw e;
+      // Firebase初期化に失敗してもアプリは動作するようにする
+      print('Continuing without Firebase...');
     } finally {
       _isInitializing = false;
     }
   }
 
-  static FirebaseAuth get auth {
+  static FirebaseAuth? get auth {
     if (!_isInitialized || _auth == null) {
-      throw Exception('Firebase not initialized');
+      print('Firebase Auth not available');
+      return null;
     }
-    return _auth!;
+    return _auth;
   }
 
-  static FirebaseFirestore get firestore {
+  static FirebaseFirestore? get firestore {
     if (!_isInitialized || _firestore == null) {
-      throw Exception('Firebase not initialized');
+      print('Firebase Firestore not available');
+      return null;
     }
-    return _firestore!;
+    return _firestore;
   }
 
-  static FirebaseStorage get storage {
+  static FirebaseStorage? get storage {
     if (!_isInitialized || _storage == null) {
-      throw Exception('Firebase not initialized');
+      print('Firebase Storage not available');
+      return null;
     }
-    return _storage!;
+    return _storage;
   }
 
   static bool get isInitialized => _isInitialized;

@@ -7,6 +7,7 @@ class SoundService {
   // 音声ファイルのパス
   static const String _correctSoundPath = 'sounds/correct.mp3';
   static const String _incorrectSoundPath = 'sounds/beep4.mp3';
+  static const String _startSoundPath = 'sounds/start.mp3';
   
   // 音声の有効/無効状態
   static bool _isSoundEnabled = true;
@@ -45,6 +46,17 @@ class SoundService {
       await _audioPlayer.play(AssetSource(_incorrectSoundPath));
     } catch (e) {
       print('Failed to play incorrect sound: $e');
+    }
+  }
+  
+  // スタート音を再生
+  static Future<void> playStartSound() async {
+    if (!_isSoundEnabled) return;
+    
+    try {
+      await _audioPlayer.play(AssetSource(_startSoundPath));
+    } catch (e) {
+      print('Failed to play start sound: $e');
     }
   }
   

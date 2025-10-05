@@ -5,6 +5,7 @@ import '../services/quiz_service.dart';
 import '../services/premium_service.dart';
 import '../services/progress_service.dart';
 import '../services/sound_service.dart';
+import '../services/interstitial_ad_service.dart';
 import '../widgets/audio_player_button.dart';
 import '../providers/user_provider.dart';
 import 'quiz_result_screen.dart';
@@ -32,6 +33,8 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
     _loadQuestions();
+    // インタースティシャル広告を読み込み
+    InterstitialAdService.loadInterstitialAd();
   }
 
   Future<void> _loadQuestions() async {
@@ -45,6 +48,9 @@ class _QuizScreenState extends State<QuizScreen> {
       isLoading = false;
       _quizStartTime = DateTime.now(); // クイズ開始時間を記録
     });
+    
+    // クイズ開始音を再生
+    SoundService.playStartSound();
   }
 
   void _selectAnswer(String answer) {
@@ -170,8 +176,12 @@ class _QuizScreenState extends State<QuizScreen> {
                     child: const Text('キャンセル'),
                   ),
                   TextButton(
-                    onPressed: () {
+                    onPressed: () async {
                       Navigator.pop(context);
+                      // 広告が有効な場合のみインタースティシャル広告を表示
+                      if (PremiumService.shouldShowAds()) {
+                        await InterstitialAdService.showInterstitialAd();
+                      }
                       Navigator.pop(context);
                     },
                     child: const Text('終了'),

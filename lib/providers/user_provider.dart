@@ -116,6 +116,148 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  // Googleログイン
+  Future<bool> signInWithGoogle() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final user = await UserService.signInWithGoogle();
+      if (user != null) {
+        _currentUser = user;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'Googleログインに失敗しました';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'Googleログインエラー: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ゲストアカウントをGoogleアカウントにリンク
+  Future<bool> linkGuestToGoogle() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final user = await UserService.linkGuestToGoogle();
+      if (user != null) {
+        _currentUser = user;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'アカウントのリンクに失敗しました';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'アカウントリンクエラー: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // 現在のユーザーがゲストかどうかチェック
+  bool get isCurrentUserGuest => UserService.isCurrentUserGuest();
+
+  // メールリンクログイン - メールリンクを送信
+  Future<bool> sendSignInLinkToEmail(String email) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final success = await UserService.sendSignInLinkToEmail(email);
+      if (success) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'メールリンクの送信に失敗しました';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'メールリンク送信エラー: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // メールリンクログイン - リンクでサインイン
+  Future<bool> signInWithEmailLink(String email, String link) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final user = await UserService.signInWithEmailLink(email, link);
+      if (user != null) {
+        _currentUser = user;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'メールリンクログインに失敗しました';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'メールリンクログインエラー: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // ゲストアカウントをメールアカウントにリンク
+  Future<bool> linkGuestToEmail(String email, String link) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final user = await UserService.linkGuestToEmail(email, link);
+      if (user != null) {
+        _currentUser = user;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = 'メールアカウントのリンクに失敗しました';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = 'メールアカウントリンクエラー: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // メールリンクが有効かチェック
+  bool isSignInWithEmailLink(String link) {
+    return UserService.isSignInWithEmailLink(link);
+  }
+
   // ログアウト
   Future<void> signOut() async {
     try {

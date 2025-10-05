@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/home_screen.dart';
 import 'services/ad_service.dart';
 import 'services/firebase_service.dart';
 import 'services/notification_service.dart';
 import 'services/idfa_service.dart';
 import 'services/tts_service.dart';
-import 'services/subscription_service.dart';
+import 'services/purchase_service.dart';
 import 'services/sound_service.dart';
+import 'services/explanation_service.dart';
 import 'providers/user_provider.dart';
 
 void main() async {
@@ -25,7 +27,21 @@ void main() async {
     _initializeNonCriticalServices();
   } catch (e) {
     print('App initialization failed: $e');
-    runApp(ErrorApp(error: e.toString()));
+    // Firebase初期化に失敗してもアプリは起動する
+    runApp(const EnglishBuddyApp());
+    
+    // 非同期でFirebase初期化を再試行
+    _retryFirebaseInitialization();
+  }
+}
+
+void _retryFirebaseInitialization() async {
+  try {
+    await Future.delayed(const Duration(seconds: 2));
+    await FirebaseService.initialize();
+    print('Firebase initialization retry successful');
+  } catch (e) {
+    print('Firebase initialization retry failed: $e');
   }
 }
 
@@ -36,8 +52,9 @@ void _initializeNonCriticalServices() async {
     NotificationService.initialize(),
     IDFAService.initialize(),
     TTSService.initialize(),
-    SubscriptionService.initialize(),
+    PurchaseService.initialize(),
     SoundService.loadSoundSettings(),
+    ExplanationService.loadExplanations(),
   ]);
 }
 
@@ -73,6 +90,193 @@ class EnglishBuddyApp extends StatelessWidget {
           ),
         ),
         home: const HomeScreen(),
+        onGenerateRoute: (settings) {
+          // メールリンクからのディープリンク処理
+          if (settings.name != null && settings.name!.contains('login')) {
+            return MaterialPageRoute(
+              builder: (context) => const EmailLinkHandler(),
+              settings: settings,
+            );
+          }
+          return null;
+        },
+      ),
+    );
+  }
+}
+
+// メールリンクハンドラー
+class EmailLinkHandler extends StatefulWidget {
+  const EmailLinkHandler({super.key});
+
+  @override
+  State<EmailLinkHandler> createState() => _EmailLinkHandlerState();
+}
+
+class _EmailLinkHandlerState extends State<EmailLinkHandler> {
+  @override
+  void initState() {
+    super.initState();
+    _handleEmailLink();
+  }
+
+  void _handleEmailLink() async {
+    try {
+      // 現在のURLを取得
+      final Uri? uri = Uri.tryParse(ModalRoute.of(context)?.settings.name ?? '');
+      if (uri == null) {
+        _navigateToHome();
+        return;
+      }
+
+      // メールリンクかチェック
+      final auth = FirebaseAuth.instance;
+      if (!auth.isSignInWithEmailLink(uri.toString())) {
+        _navigateToHome();
+        return;
+      }
+
+      // メールアドレスを取得（SharedPreferencesから）
+      // 実際の実装では、メールアドレスを安全に保存・取得する必要があります
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      
+      // メールアドレス入力ダイアログを表示
+      _showEmailInputDialog(uri.toString());
+    } catch (e) {
+      print('Email link handling error: $e');
+      _navigateToHome();
+    }
+  }
+
+  void _showEmailInputDialog(String link) {
+    final TextEditingController emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.mail, color: Colors.green),
+              SizedBox(width: 8),
+              Text('ログインを完了'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'メールリンクを確認しました。\nメールアドレスを入力してログインを完了してください。',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'メールアドレス',
+                  hintText: 'example@email.com',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _navigateToHome();
+              },
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                if (email.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('メールアドレスを入力してください'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.of(context).pop();
+                
+                // ローディング表示
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const AlertDialog(
+                    content: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Text('ログイン中...'),
+                      ],
+                    ),
+                  ),
+                );
+                
+                try {
+                  final userProvider = Provider.of<UserProvider>(context, listen: false);
+                  final success = await userProvider.signInWithEmailLink(email, link);
+                  
+                  // ローディングダイアログを閉じる
+                  Navigator.of(context).pop();
+                  
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('ログインが完了しました！'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    _navigateToHome();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(userProvider.error ?? 'ログインに失敗しました'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    _navigateToHome();
+                  }
+                } catch (e) {
+                  // ローディングダイアログを閉じる
+                  Navigator.of(context).pop();
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('エラー: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  _navigateToHome();
+                }
+              },
+              child: const Text('ログイン'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _navigateToHome() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (route) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }

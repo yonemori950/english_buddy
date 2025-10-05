@@ -17,7 +17,13 @@ class ExplanationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final explanation = ExplanationService.getExplanationById(questionId);
+    // まずIDで解説を取得
+    Explanation? explanation = ExplanationService.getExplanationById(questionId);
+    
+    // IDで見つからない場合は問題文で検索
+    if (explanation == null) {
+      explanation = ExplanationService.getExplanationByQuestion(questionText);
+    }
 
     return Dialog(
       shape: RoundedRectangleBorder(

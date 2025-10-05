@@ -103,7 +103,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

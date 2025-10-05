@@ -4,6 +4,7 @@ import '../services/explanation_service.dart';
 import '../services/interstitial_ad_service.dart';
 import '../services/premium_service.dart';
 import '../widgets/explanation_dialog.dart';
+import 'quiz_screen.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final int correctAnswers;
@@ -353,12 +354,21 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(
-                            context,
-                            '/quiz',
-                            (route) => false,
-                          );
+                        onPressed: () async {
+                          // 広告が有効な場合のみインタースティシャル広告を表示
+                          if (PremiumService.shouldShowAds()) {
+                            await InterstitialAdService.showInterstitialAd();
+                          }
+                          // 直接QuizScreenに遷移
+                          if (mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const QuizScreen(),
+                              ),
+                              (route) => false,
+                            );
+                          }
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.all(16),

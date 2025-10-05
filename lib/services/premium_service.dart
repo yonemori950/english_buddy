@@ -1,4 +1,4 @@
-import 'subscription_service.dart';
+import 'purchase_service.dart';
 import '../models/question.dart';
 
 class PremiumService {
@@ -7,8 +7,8 @@ class PremiumService {
   static const int _freeListeningQuestions = 10; // リスニング10問
   
   // プレミアム機能の確認
-  static bool get hasPremiumAccess => SubscriptionService.isPremium;
-  static bool get hasAdsRemoved => SubscriptionService.isAdsRemoved;
+  static bool get hasPremiumAccess => PurchaseService.hasAllFeatures;
+  static bool get hasAdsRemoved => PurchaseService.hasAdsRemoved;
   
   // 問題の制限チェック
   static List<Question> filterQuestionsForUser(List<Question> allQuestions) {
@@ -65,20 +65,13 @@ class PremiumService {
   
   // 問題が無料層に含まれるかチェック
   static bool _isQuestionInFreeTier(Question question) {
-    // 実際の実装では、問題IDや順序に基づいて判定
-    // ここでは簡易的に問題IDで判定
-    final int questionId = question.id;
-    
-    switch (question.tag) {
-      case 'grammar':
-      case 'vocabulary':
-      case 'reading':
-        return questionId <= _freeQuestionsPerCategory;
-      case 'listening':
-        return questionId <= _freeListeningQuestions;
-      default:
-        return false;
+    // リスニング問題は常に制限（プレミアム機能）
+    if (question.tag == 'listening') {
+      return false; // リスニング問題は無料では利用不可
     }
+    
+    // その他のカテゴリは制限なし（無料で利用可能）
+    return true;
   }
   
   // 広告表示の制御

@@ -2,12 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_service.dart';
 
 class RankingService {
-  static final FirebaseFirestore _firestore = FirebaseService.firestore;
+  static FirebaseFirestore? get _firestore => FirebaseService.firestore;
 
   // スコアランキングを取得
   static Future<List<Map<String, dynamic>>> getScoreRanking({int limit = 10}) async {
     try {
-      final QuerySnapshot snapshot = await _firestore
+      if (_firestore == null) {
+        print('Firebase Firestore not available');
+        return [];
+      }
+      
+      final QuerySnapshot snapshot = await _firestore!
           .collection('users')
           .orderBy('exp', descending: true)
           .limit(limit)
@@ -32,7 +37,7 @@ class RankingService {
   // ユーザーの順位を取得
   static Future<int> getUserRank(String uid) async {
     try {
-      final QuerySnapshot snapshot = await _firestore
+      final QuerySnapshot snapshot = await _firestore!
           .collection('users')
           .orderBy('exp', descending: true)
           .get();
@@ -54,7 +59,7 @@ class RankingService {
   // ランキングデータを更新
   static Future<void> updateRanking(String uid, String name, int score, int level) async {
     try {
-      await _firestore.collection('scores').doc(uid).set({
+      await _firestore!.collection('scores').doc(uid).set({
         'uid': uid,
         'name': name,
         'score': score,
@@ -71,7 +76,7 @@ class RankingService {
     try {
       final weekAgo = DateTime.now().subtract(const Duration(days: 7));
       
-      final QuerySnapshot snapshot = await _firestore
+      final QuerySnapshot snapshot = await _firestore!
           .collection('users')
           .where('updated', isGreaterThan: weekAgo.toIso8601String())
           .orderBy('updated')
@@ -100,7 +105,7 @@ class RankingService {
     try {
       final monthAgo = DateTime.now().subtract(const Duration(days: 30));
       
-      final QuerySnapshot snapshot = await _firestore
+      final QuerySnapshot snapshot = await _firestore!
           .collection('users')
           .where('updated', isGreaterThan: monthAgo.toIso8601String())
           .orderBy('updated')

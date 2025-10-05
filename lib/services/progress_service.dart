@@ -4,8 +4,8 @@ import 'firebase_service.dart';
 import 'premium_service.dart';
 
 class ProgressService {
-  static final FirebaseFirestore _firestore = FirebaseService.firestore;
-  static final FirebaseAuth _auth = FirebaseService.auth;
+  static FirebaseFirestore? get _firestore => FirebaseService.firestore;
+  static FirebaseAuth? get _auth => FirebaseService.auth;
   
   // 日別の学習記録を保存
   static Future<void> saveDailyProgress({
@@ -15,7 +15,12 @@ class ProgressService {
     required Map<String, int> categoryResults,
   }) async {
     try {
-      final user = _auth.currentUser;
+      if (_auth == null || _firestore == null) {
+        print('Firebase not available, skipping progress save');
+        return;
+      }
+      
+      final user = _auth!.currentUser;
       if (user == null) return;
       
       final today = DateTime.now();
@@ -31,7 +36,7 @@ class ProgressService {
         'timestamp': FieldValue.serverTimestamp(),
       };
       
-      await _firestore
+      await _firestore!
           .collection('users')
           .doc(user.uid)
           .collection('progress')
@@ -47,13 +52,18 @@ class ProgressService {
   // 過去30日の学習記録を取得
   static Future<List<Map<String, dynamic>>> getLast30DaysProgress() async {
     try {
-      final user = _auth.currentUser;
+      if (_auth == null || _firestore == null) {
+        print('Firebase not available, returning empty progress');
+        return [];
+      }
+      
+      final user = _auth!.currentUser;
       if (user == null) return [];
       
       final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
       final startDate = '${thirtyDaysAgo.year}-${thirtyDaysAgo.month.toString().padLeft(2, '0')}-${thirtyDaysAgo.day.toString().padLeft(2, '0')}';
       
-      final QuerySnapshot snapshot = await _firestore
+      final QuerySnapshot snapshot = await _firestore!
           .collection('users')
           .doc(user.uid)
           .collection('progress')
